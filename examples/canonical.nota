@@ -1,0 +1,18 @@
+;; Canonical NOTA examples for owner-signal-persona.
+
+(Launch (example-engine))
+(Query (Catalog AllEngines))
+(Query (EngineStatus WholeEngine))
+(Query (ComponentStatus persona-router))
+(Retire prototype)
+(Start (persona-router))
+(Stop (persona-router))
+
+(Launched (prototype example-engine))
+(Catalog ([(prototype example-engine Running)]))
+(EngineStatus (1 Running [(persona-router Router Running Running)]))
+(ComponentStatus (persona-router Router Running Running))
+(ComponentMissing persona-router)
+(Retired prototype)
+(ActionAccepted (persona-router Running))
+(ActionRejected (persona-router ComponentNotManaged))
