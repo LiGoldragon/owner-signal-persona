@@ -3,19 +3,19 @@
 //! This crate carries the owner-only surface for the top-level Persona
 //! daemon: engine launch, retirement, component lifecycle orders, and
 //! manager status queries. The ordinary manager-to-child lifecycle relation
-//! lives in `signal-persona-engine-management`.
+//! lives in `signal-engine-management`.
 
 use nota_codec::{NotaEnum, NotaRecord, NotaTransparent};
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 use signal_frame::signal_channel;
 use signal_sema::SemaObservation;
 
+pub use signal_engine_management::{
+    ComponentDesiredState, ComponentHealth, ComponentKind, ComponentName, ComponentStatus,
+};
 pub use signal_frame::{
     ExchangeFrameBody as FrameExchangeFrameBody, HandshakeReply, HandshakeRequest, ProtocolVersion,
     Request as FrameRequest, SIGNAL_FRAME_PROTOCOL_VERSION,
-};
-pub use signal_persona_engine_management::{
-    ComponentDesiredState, ComponentHealth, ComponentKind, ComponentName, ComponentStatus,
 };
 
 #[derive(

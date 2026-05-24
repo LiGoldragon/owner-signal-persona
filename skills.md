@@ -25,7 +25,7 @@ Before changing code in this repo, read:
 
 - Persona daemon actors or storage;
 - manager-to-child lifecycle traffic, which lives in
-  `signal-persona-engine-management`;
+  `signal-engine-management`;
 - component-domain traffic;
 - CLI parsing or socket policy.
 
