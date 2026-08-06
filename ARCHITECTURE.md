@@ -1,67 +1,44 @@
-# meta-signal-persona — Architecture
+# ARCHITECTURE — meta-signal-persona
 
-`meta-signal-persona` is the meta policy Signal contract for privileged
-Persona engine-manager commands.
+`meta-signal-persona` is the owner authority relation for privileged Persona
+engine management. The ordinary producer owns lifecycle identity and status
+Types; this Interface imports those opaque identities so ordinary and owner
+traffic cannot drift into parallel records.
 
-## 0.5 · Direction
+## Interface
 
-`meta-signal-persona` is the meta policy side of the Persona triad. It carries requests that can change the engine or component lifecycle. Component-to-component domain contracts stay in their relation-specific `signal-persona-*` and `meta-signal-persona-*` crates; the ordinary manager-to-component lifecycle protocol (`Announce`, readiness, health, `Stop`, `SpawnEnvelope`) lives in `signal-persona`. Request payloads do not carry caller identity, timestamps, or minted engine identity — those facts are infrastructure-owned and minted at the daemon.
+The sole authored source is `ethos/interface.ethos`, a role-free
+`Interface.{1 0 0}` document. Its import header names exact Types in
+`signal_persona:lib`. `build.rs` resolves the producer-published Ethos
+directory, verifies that its text is exactly the source compiled into the
+pinned producer dependency, and seats the imported identities in the local
+catalog.
 
-## Boundary
+Local strict Types describe engine generations, phases, catalog entries,
+launch and retirement results, component actions, queries, and the encoded
+`OwnerRequest` / `OwnerReply` roots. Dotos uses the authority's textual
+metadata to retain the domain spellings.
 
-This crate is the meta policy side of the Persona triad. It carries requests that
-can change the engine or component lifecycle:
+## Current behavior slice
 
-| Operation | Meaning |
-|---|---|
-| `Launch(EngineLaunch)` | create a new engine context |
-| `Query(Query)` | read catalog, engine status, or component status |
-| `Retire(EngineIdentifier)` | retire an engine context |
-| `Start(ComponentStartup)` | order a supervised component to run |
-| `Stop(ComponentShutdown)` | order a supervised component to stop |
+Archive behavior, Dotos behavior, owner role routing, and the Signal frame
+binding are handwritten in `src/schema/lib/behavior.rs` until Logos expresses
+that slice. Five request routes and ten reply routes retain their allocated
+logical coordinates independently of strict canonical declaration order. The
+allocated frame contract is ID 2 at wire revision 2.
 
-The ordinary manager-to-supervised-component lifecycle protocol lives in
-`signal-persona`. That crate carries `Announce`, readiness, health, `Stop`,
-and `SpawnEnvelope`.
+## Boundaries
 
-## Non-Goals
+This repository owns the owner relation vocabulary and frame legality. It owns
+no daemon runtime, authentication, sockets, actors, storage, process
+supervision, or manager-to-child lifecycle traffic.
 
-This crate does not own daemon actors, persistence, process spawning, socket
-paths, CLI parsing, or component-domain traffic. Component-to-component domain
-contracts stay in their relation-specific `signal-persona-*` and
-`meta-signal-persona-*` crates.
+## Proof surfaces
 
-## Wire Shape
-
-`schema/lib.schema` declares the meta policy operation and reply roots.
-`schema-rust`'s TrueSchema emitter emits the `Input` / `InputRoute` / `Output`
-roots, route witnesses, short-header constants, frame aliases, and rkyv/NOTA
-codecs into `src/schema/lib.rs`. The crate root re-exports that generated
-surface and keeps `Operation`, `OperationKind`, `Query`, and `Reply` aliases for
-the meta policy relation.
-
-## Invariants
-
-- Meta policy mutating authority enters through this crate, not through
-  `signal-persona`.
-- Request payloads do not carry caller identity, timestamps, or minted engine
-  identity. Those facts are infrastructure-owned.
-- Wire enums are closed. There is no `Unknown` escape hatch.
-- Round-trip tests cover frame encoding, generated short headers, and NOTA text
-  encoding for the meta surface. The crate-local `nota-text` feature maps to
-  `signal-frame/nota-text` and `signal-persona/nota-text` so generated policy
-  records and imported ordinary Persona records carry text codecs when the text
-  witnesses build.
-
-## Emission
-
-`build.rs` runs `schema-rust`'s TrueSchema wire-contract driver and imports
-`signal-persona`'s schema metadata so shared lifecycle records are defined once.
-Regenerate with `META_SIGNAL_PERSONA_UPDATE_SCHEMA_ARTIFACTS=1 cargo build
---all-features` after schema edits. The ordinary `signal-persona` contract owns
-shared component names, status records, and engine identifiers; this meta
-contract imports them instead of redefining them.
-
-## See Also
-
-- `/git/github.com/LiGoldragon/signal-persona/ARCHITECTURE.md`
+- `tests/interface_contract.rs` proves exact producer imports, empty Interface
+  role lists, and strict local/imported Rust coordinates.
+- `tests/round_trip.rs` proves every request and reply route through frame
+  bytes.
+- `tests/canonical_examples.rs` proves readable Dotos examples.
+- `tests/dependency_boundary.rs` proves the corrected generator and runtime
+  boundary, and fences historical source machinery at exact zero.

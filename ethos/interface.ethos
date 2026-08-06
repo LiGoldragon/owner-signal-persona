@@ -1,0 +1,8 @@
+Interface.{1 0 0}
+[signal_persona:lib.[ComponentStatus ComponentHealth ComponentKind ComponentName ComponentDesiredState EngineIdentifier]]
+{
+  []
+  []
+  []
+  [EngineCatalogScope.[AllEngines] EnginePhase.[Stopped Degraded Starting Running Draining] EngineStatusReport.{EngineGeneration EnginePhase Vector<ComponentStatus>} LaunchRejectionReason.[LaunchPlanRejected EngineLimitReached EngineLabelAlreadyExists] EngineCatalogEntry.{EngineIdentifier EngineLabel EnginePhase} EngineCatalog.Vector<EngineCatalogEntry> ActionRejection.{ComponentName ActionRejectionReason} EngineLaunch.EngineLabel RetirementRejection.{EngineIdentifier RetirementRejectionReason} LaunchRejection.{EngineLabel LaunchRejectionReason} RetirementRejectionReason.[EngineNotFound EngineHasLiveRoutes EngineStillRunning] ActionRejectionReason.[ComponentAlreadyInDesiredState ComponentNotManaged] ComponentStartup.ComponentName OwnerRequest.[Retire.EngineIdentifier Start.ComponentStartup Launch.EngineLaunch Query.MetaQuery Stop.ComponentShutdown] EngineStatusScope.[WholeEngine] EngineLabel.String EngineGeneration.Integer OwnerReply.[ActionAccepted.ActionAcceptance RetireRejected.RetirementRejection Catalog.EngineCatalog ComponentMissing.ComponentName EngineStatus.EngineStatusReport Launched.LaunchAcceptance ActionRejected.ActionRejection LaunchRejected.LaunchRejection ComponentStatus.ComponentStatus Retired.EngineIdentifier] ComponentShutdown.ComponentName MetaQuery.[ComponentStatus.ComponentName EngineStatus.EngineStatusScope Catalog.EngineCatalogScope] ActionAcceptance.{ComponentName ComponentDesiredState} LaunchAcceptance.{EngineIdentifier EngineLabel}]
+}

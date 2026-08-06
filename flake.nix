@@ -1,5 +1,5 @@
 {
-  description = "MetaSignal contract for privileged Persona engine-manager commands.";
+  description = "meta-signal-persona — meta Signal contract for Persona engine management";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -31,13 +31,12 @@
           "rust-src"
         ];
         craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
-        schemaFilter = path: _type: builtins.match ".*/schema(/.*)?$" path != null;
-        examplesFilter = path: _type: builtins.match ".*/examples(/.*)?$" path != null;
-        sourceFilter = path: type:
-          type == "directory"
-          || (craneLib.filterCargoSources path type)
-          || (schemaFilter path type)
-          || (examplesFilter path type);
+        contractFilter =
+          path: type:
+          type == "regular" && (pkgs.lib.hasSuffix ".ethos" path || pkgs.lib.hasSuffix ".dotos" path);
+        sourceFilter =
+          path: type:
+          type == "directory" || (craneLib.filterCargoSources path type) || (contractFilter path type);
         src = pkgs.lib.cleanSourceWith {
           src = ./.;
           filter = sourceFilter;
@@ -51,7 +50,6 @@
       in
       {
         packages.default = craneLib.buildPackage (commonArgs // { inherit cargoArtifacts; });
-
         checks = {
           build = craneLib.cargoBuild (commonArgs // { inherit cargoArtifacts; });
           test = craneLib.cargoTest (commonArgs // { inherit cargoArtifacts; });
@@ -60,6 +58,27 @@
             // {
               inherit cargoArtifacts;
               cargoTestExtraArgs = "--test round_trip";
+            }
+          );
+          test-canonical = craneLib.cargoTest (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+              cargoTestExtraArgs = "--test canonical_examples --features dotos-text";
+            }
+          );
+          test-interface-contract = craneLib.cargoTest (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+              cargoTestExtraArgs = "--test interface_contract";
+            }
+          );
+          test-dependency-boundary = craneLib.cargoTest (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+              cargoTestExtraArgs = "--test dependency_boundary";
             }
           );
           test-doc = craneLib.cargoTest (
@@ -81,11 +100,10 @@
             commonArgs
             // {
               inherit cargoArtifacts;
-              cargoClippyExtraArgs = "--all-targets -- -D warnings";
+              cargoClippyExtraArgs = "--all-targets --all-features -- -D warnings";
             }
           );
         };
-
         devShells.default = pkgs.mkShell {
           name = "meta-signal-persona";
           packages = [
@@ -94,7 +112,6 @@
             toolchain
           ];
         };
-
         formatter = pkgs.nixfmt;
       }
     );

@@ -1,44 +1,34 @@
 # skills — meta-signal-persona
 
-Per-repo guide for the meta policy Persona engine-manager contract.
-
-## Checkpoint
-
-Before changing code in this repo, read:
-
-- `~/primary/skills/contract-repo.md`
-- `~/primary/skills/architecture-editor.md`
-- `~/primary/skills/architectural-truth-tests.md`
-- `~/primary/skills/nix-discipline.md`
-- this repo's `ARCHITECTURE.md`
-- `/git/github.com/LiGoldragon/persona/ARCHITECTURE.md`
+Per-repository guide for the owner Persona engine-management Interface.
 
 ## Owns
 
-- privileged Persona engine-manager operations;
-- generated `Input` / `Output` roots and crate-level `Operation` / `Reply`
-  aliases;
-- meta policy engine status, catalog, launch, retirement, start, and stop
-  payload records;
-- meta-surface round-trip tests.
+- privileged Persona engine-management request and reply Types;
+- engine launch, retirement, catalog, status, start, and stop relation data;
+- the owner Signal frame binding and route witnesses;
+- the authority manifest and strict Rust projection of the local Types.
 
-## Does Not Own
+## Does not own
 
-- Persona daemon actors or storage;
-- manager-to-child lifecycle traffic, which lives in `signal-persona`;
-- component-domain traffic;
-- CLI parsing or socket policy.
+- Persona daemon actors, process supervision, sockets, authentication, or
+  storage;
+- manager-to-child lifecycle traffic and lifecycle identities, which remain
+  producer-owned in `signal-persona`;
+- component-domain traffic or command-line policy.
 
 ## Invariants
 
-- This is the meta policy socket vocabulary for Persona.
-- Contract operations use contract-local verbs.
-- Requests carry no caller identity, timestamp, sender, or authorization proof.
-- Wire enums are closed and every variant has a round-trip witness.
-- The optional `nota-text` feature maps to `signal-frame/nota-text` and
-  `signal-persona/nota-text`; keep it while this crate owns NOTA round-trip
-  witnesses.
+- `ethos/interface.ethos` is the sole authored Interface source.
+- Imported lifecycle Types keep their exact producer identities.
+- Interface role lists stay empty at this stage; behavior is handwritten until
+  Logos expresses it.
+- Rust Type and variant coordinates are encoded; Dotos supplies readable
+  textual projection.
+- Wire enums are closed and every role variant has a round-trip witness.
+- No historical schema source, NOTA surface, compatibility alias, or branch pin
+  may return.
 
-Edit `schema/lib.schema`, then regenerate checked-in artifacts with
-`META_SIGNAL_PERSONA_UPDATE_SCHEMA_ARTIFACTS=1 cargo build --all-features`.
-Generated Rust lives in `src/schema/lib.rs`; do not hand-edit it.
+After an authority-approved Type change, refresh with
+`META_SIGNAL_PERSONA_UPDATE_INTERFACE_ARTIFACTS=1 cargo build --all-features`
+and inspect both the canonical Ethos source and generated Rust projection.

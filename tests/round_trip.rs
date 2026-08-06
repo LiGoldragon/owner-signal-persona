@@ -1,20 +1,6 @@
-use meta_signal_persona::{
-    ActionAcceptance, ActionRejection, ActionRejectionReason, ComponentDesiredState, ComponentName,
-    ComponentShutdown, ComponentStartup, EngineCatalog, EngineCatalogEntry, EngineCatalogScope,
-    EngineIdentifier, EngineLabel, EngineLaunch, EnginePhase, EngineStatusScope, Frame, FrameBody,
-    Operation, OperationKind, Query, Reply, RetirementRejection, RetirementRejectionReason,
-    short_header,
-};
-#[cfg(feature = "nota-text")]
-use meta_signal_persona::{
-    ComponentHealth, ComponentKind, EngineGeneration, EngineStatusReport, LifecycleComponentStatus,
-};
-#[cfg(feature = "nota-text")]
-use nota::{NotaEncode, NotaSource};
-use signal_frame::{
-    ExchangeIdentifier, ExchangeLane, LaneSequence, NonEmpty, Reply as FrameReply, RequestPayload,
-    SessionEpoch, SubReply,
-};
+use meta_signal_persona::schema::lib::*;
+use signal_frame::{ExchangeIdentifier, ExchangeLane, LaneSequence, SessionEpoch};
+use signal_persona::schema::lib::{z2VRuG, z2VUT8, z2VYY4};
 
 fn exchange() -> ExchangeIdentifier {
     ExchangeIdentifier::new(
@@ -24,203 +10,147 @@ fn exchange() -> ExchangeIdentifier {
     )
 }
 
-fn completed_reply(payload: Reply) -> FrameReply<Reply> {
-    FrameReply::committed(NonEmpty::single(SubReply::Ok(payload)))
+fn component_name() -> z2VUT8 {
+    z2VUT8::new("persona-router".to_owned())
 }
 
-fn engine_identifier(label: &str) -> EngineIdentifier {
-    EngineIdentifier::new(label)
+fn engine_identifier() -> z2VRuG {
+    z2VRuG::new("research".to_owned())
 }
 
-fn router_name() -> ComponentName {
-    ComponentName::new("persona-router")
-}
-
-#[cfg(feature = "nota-text")]
-fn router_status() -> LifecycleComponentStatus {
-    LifecycleComponentStatus {
-        component_name: router_name(),
-        component_kind: ComponentKind::Router,
-        component_desired_state: ComponentDesiredState::Running,
-        component_health: ComponentHealth::Running,
-    }
-}
-
-fn launch_operation() -> Operation {
-    Operation::Launch(EngineLaunch::new(EngineLabel::new("research")).into())
-}
-
-fn round_trip_operation(operation: Operation) -> Operation {
-    let frame = Frame::new(FrameBody::Request {
-        exchange: exchange(),
-        request: operation.clone().into_request(),
-    });
-    let bytes = frame.encode_length_prefixed().expect("encode operation");
-    let decoded = Frame::decode_length_prefixed(&bytes).expect("decode operation");
-
-    match decoded.into_body() {
-        FrameBody::Request { request, .. } => request.payloads().head().clone(),
-        other => panic!("expected request, got {other:?}"),
-    }
-}
-
-fn round_trip_reply(reply: Reply) -> Reply {
-    let frame = Frame::new(FrameBody::Reply {
-        exchange: exchange(),
-        reply: completed_reply(reply.clone()),
-    });
-    let bytes = frame.encode_length_prefixed().expect("encode reply");
-    let decoded = Frame::decode_length_prefixed(&bytes).expect("decode reply");
-
-    match decoded.into_body() {
-        FrameBody::Reply { reply, .. } => match reply {
-            FrameReply::Accepted { per_operation, .. } => match per_operation.into_head() {
-                SubReply::Ok(payload) => payload,
-                other => panic!("expected accepted reply payload, got {other:?}"),
-            },
-            other => panic!("expected accepted reply, got {other:?}"),
-        },
-        other => panic!("expected reply, got {other:?}"),
-    }
+fn launch() -> z2Vddz {
+    z2Vddz::z2VUcG(z2VRvK::new(z2VM9u::new("research".to_owned())))
 }
 
 #[test]
-fn meta_operations_round_trip_through_length_prefixed_frames() {
-    assert_eq!(round_trip_operation(launch_operation()), launch_operation());
-
-    let catalog = Operation::Query(Query::Catalog(EngineCatalogScope::AllEngines).into());
-    assert_eq!(round_trip_operation(catalog.clone()), catalog);
-
-    let retire = Operation::Retire(engine_identifier("research").into());
-    assert_eq!(round_trip_operation(retire.clone()), retire);
-
-    let start = Operation::Start(ComponentStartup::new(router_name()).into());
-    assert_eq!(round_trip_operation(start.clone()), start);
-
-    let stop = Operation::Stop(ComponentShutdown::new(router_name()).into());
-    assert_eq!(round_trip_operation(stop.clone()), stop);
-}
-
-#[test]
-fn meta_replies_round_trip_through_length_prefixed_frames() {
-    let catalog = Reply::Catalog(
-        EngineCatalog::new(vec![EngineCatalogEntry {
-            engine_identifier: engine_identifier("default"),
-            engine_label: EngineLabel::new("default"),
-            engine_phase: EnginePhase::Running,
-        }])
-        .into(),
-    );
-    assert_eq!(round_trip_reply(catalog.clone()), catalog);
-
-    let blocked = Reply::RetireRejected(
-        RetirementRejection {
-            engine_identifier: engine_identifier("default"),
-            retirement_rejection_reason: RetirementRejectionReason::EngineStillRunning,
-        }
-        .into(),
-    );
-    assert_eq!(round_trip_reply(blocked.clone()), blocked);
-}
-
-#[test]
-fn generated_short_headers_are_contract_local_and_distinct() {
-    let headers = [
-        short_header::INPUT_LAUNCH,
-        short_header::INPUT_QUERY,
-        short_header::INPUT_RETIRE,
-        short_header::INPUT_START,
-        short_header::INPUT_STOP,
-        short_header::OUTPUT_LAUNCHED,
-        short_header::OUTPUT_LAUNCH_REJECTED,
-        short_header::OUTPUT_CATALOG,
-        short_header::OUTPUT_ENGINE_STATUS,
-        short_header::OUTPUT_COMPONENT_STATUS,
-        short_header::OUTPUT_COMPONENT_MISSING,
-        short_header::OUTPUT_RETIRED,
-        short_header::OUTPUT_RETIRE_REJECTED,
-        short_header::OUTPUT_ACTION_ACCEPTED,
-        short_header::OUTPUT_ACTION_REJECTED,
-    ];
-    for (outer_index, outer) in headers.iter().enumerate() {
-        for (inner_index, inner) in headers.iter().enumerate() {
-            if outer_index != inner_index {
-                assert_ne!(outer, inner, "short headers must be distinct");
-            }
-        }
-    }
-}
-
-#[cfg(feature = "nota-text")]
-#[test]
-fn meta_text_shape_stays_canonical() {
-    let text = launch_operation().to_nota();
-    let recovered = NotaSource::new(&text)
-        .parse::<Operation>()
-        .expect("decode operation");
-    assert_eq!(recovered, launch_operation());
-    assert_eq!(text, "(Launch research)");
-
-    let reply = Reply::EngineStatus(
-        EngineStatusReport {
-            engine_generation: EngineGeneration::new(1),
-            engine_phase: EnginePhase::Running,
-            lifecycle_component_status_vector: vec![router_status()],
-        }
-        .into(),
-    );
-    let text = reply.to_nota();
-    let recovered = NotaSource::new(&text)
-        .parse::<Reply>()
-        .expect("decode reply");
-    assert_eq!(recovered, reply);
-    assert_eq!(
-        text,
-        "(EngineStatus (1 Running [(persona-router Router Running Running)]))"
-    );
-}
-
-#[test]
-fn operation_kind_is_generated_by_schema() {
+fn every_request_route_keeps_its_allocated_wire_coordinate() {
     let cases = [
-        (launch_operation(), OperationKind::Launch),
+        (launch(), InputRoute::Launch, 0),
         (
-            Operation::Query(Query::EngineStatus(EngineStatusScope::WholeEngine).into()),
-            OperationKind::Query,
+            z2Vddz::z2VauG(z2VU6S::z2Vbns(z2VTjj::z2VMmu)),
+            InputRoute::Query,
+            1,
+        ),
+        (z2Vddz::z2VWT8(engine_identifier()), InputRoute::Retire, 2),
+        (
+            z2Vddz::z2VaMT(z2VWds::new(component_name())),
+            InputRoute::Start,
+            3,
         ),
         (
-            Operation::Start(ComponentStartup::new(router_name()).into()),
-            OperationKind::Start,
-        ),
-        (
-            Operation::Stop(ComponentShutdown::new(router_name()).into()),
-            OperationKind::Stop,
+            z2Vddz::z2VZjS(z2VKpw::new(component_name())),
+            InputRoute::Stop,
+            4,
         ),
     ];
 
-    for (operation, expected_kind) in cases {
-        assert_eq!(operation.kind(), expected_kind);
-        assert_eq!(operation.route(), expected_kind);
+    for (request, route, ordinal) in cases {
+        assert_eq!(request.route(), route);
+        assert_eq!(request.wire_route().root().value(), 0);
+        assert_eq!(request.wire_route().variant().value(), ordinal);
+        let bytes = request
+            .clone()
+            .encode_request_frame(exchange())
+            .expect("encode");
+        let (_, decoded) = ContractMarker::decode_single_request(&bytes).expect("decode");
+        assert_eq!(decoded, request);
     }
 }
 
 #[test]
-fn component_action_replies_stay_meta_policy_only() {
-    let accepted = Reply::ActionAccepted(
-        ActionAcceptance {
-            component_name: router_name(),
-            component_desired_state: ComponentDesiredState::Running,
-        }
-        .into(),
-    );
-    assert_eq!(round_trip_reply(accepted.clone()), accepted);
+fn every_reply_route_keeps_its_allocated_wire_coordinate() {
+    let replies = [
+        (
+            z2VW6f::z2VX3m(z2VaQD {
+                field_0: engine_identifier(),
+                field_1: z2VM9u::new("research".to_owned()),
+            }),
+            OutputRoute::Launched,
+        ),
+        (
+            z2VW6f::z2VUza(z2VN6Q {
+                field_0: z2VM9u::new("research".to_owned()),
+                field_1: z2VRsY::z2VT8r,
+            }),
+            OutputRoute::LaunchRejected,
+        ),
+        (
+            z2VW6f::z2VWUX(z2VX4Y::new(Vec::new())),
+            OutputRoute::Catalog,
+        ),
+        (
+            z2VW6f::z2VdNk(z2Vc9S {
+                field_0: z2VTEB::new(1),
+                field_1: z2VZxR::z2VRPX,
+                field_2: Vec::new(),
+            }),
+            OutputRoute::EngineStatus,
+        ),
+        (
+            z2VW6f::z2VWh7(signal_persona::schema::lib::z2VWYF {
+                field_0: component_name(),
+                field_1: signal_persona::schema::lib::z2VXzu::z2VKp5,
+                field_2: z2VYY4::z2VdTN,
+                field_3: signal_persona::schema::lib::z2VRTx::z2VcFR,
+            }),
+            OutputRoute::ComponentStatus,
+        ),
+        (
+            z2VW6f::z2VaL5(component_name()),
+            OutputRoute::ComponentMissing,
+        ),
+        (z2VW6f::z2VPwy(engine_identifier()), OutputRoute::Retired),
+        (
+            z2VW6f::z2VV4U(z2VWoB {
+                field_0: engine_identifier(),
+                field_1: z2VPDR::z2Vevx,
+            }),
+            OutputRoute::RetireRejected,
+        ),
+        (
+            z2VW6f::z2VaJm(z2Vees {
+                field_0: component_name(),
+                field_1: z2VYY4::z2VdTN,
+            }),
+            OutputRoute::ActionAccepted,
+        ),
+        (
+            z2VW6f::z2VMK9(z2VdPy {
+                field_0: component_name(),
+                field_1: z2VSDb::z2VWwK,
+            }),
+            OutputRoute::ActionRejected,
+        ),
+    ];
 
-    let rejected = Reply::ActionRejected(
-        ActionRejection {
-            component_name: router_name(),
-            action_rejection_reason: ActionRejectionReason::ComponentNotManaged,
+    for (ordinal, (reply, route)) in replies.into_iter().enumerate() {
+        assert_eq!(reply.route(), route);
+        assert_eq!(reply.wire_route().root().value(), 1);
+        assert_eq!(reply.wire_route().variant().value(), ordinal as u8);
+        let bytes = reply
+            .clone()
+            .encode_reply_frame(exchange())
+            .expect("encode");
+        let decoded = ContractMarker::decode_frame(&bytes).expect("decode");
+        match decoded.into_body() {
+            FrameBody::Reply {
+                reply: signal_frame::Reply::Accepted { per_operation, .. },
+                ..
+            } => match per_operation.into_head() {
+                signal_frame::SubReply::Ok(payload) => assert_eq!(payload, reply),
+                other => panic!("expected payload, got {other:?}"),
+            },
+            other => panic!("expected reply, got {other:?}"),
         }
-        .into(),
-    );
-    assert_eq!(round_trip_reply(rejected.clone()), rejected);
+    }
+}
+
+#[test]
+fn imported_producer_types_remain_the_payload_coordinates() {
+    let accepted = z2Vees {
+        field_0: component_name(),
+        field_1: z2VYY4::z2VdTN,
+    };
+    assert_eq!(accepted.field_0.payload(), "persona-router");
+    assert!(matches!(accepted.field_1, z2VYY4::z2VdTN));
 }

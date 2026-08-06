@@ -1,23 +1,13 @@
-//! Schema-derived MetaSignal contract for privileged Persona engine-manager
-//! commands.
+//! Owner Persona engine-management Interface.
 //!
-//! This crate carries the meta policy surface for the top-level Persona
-//! daemon: engine launch, retirement, component lifecycle orders, and manager
-//! status queries. The ordinary manager-to-child lifecycle relation lives in
-//! `signal-persona`.
+//! Ordinary lifecycle Types are imported from their producer by identity. The
+//! local Type projection is strict; owner request/reply behavior remains
+//! handwritten until Logos owns that operational slice.
 
-#[rustfmt::skip]
+pub mod bootstrap_manifest;
 pub mod schema;
 
+pub const META_PERSONA_INTERFACE_SOURCE: &str = include_str!("../ethos/interface.ethos");
+pub const META_PERSONA_INTERFACE_RUST: &str = include_str!("schema/lib/generated.rs");
+
 pub use schema::lib::*;
-
-pub type Operation = Input;
-pub type OperationKind = InputRoute;
-pub type Reply = Output;
-pub type Query = MetaQuery;
-
-impl Input {
-    pub fn kind(&self) -> InputRoute {
-        self.route()
-    }
-}

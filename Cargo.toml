@@ -1,11 +1,11 @@
 [package]
 name         = "meta-signal-persona"
-version      = "0.2.0"
+version      = "0.3.0"
 edition      = "2024"
 rust-version = "1.89"
 license      = "MIT OR Apache-2.0"
 repository   = "https://github.com/LiGoldragon/meta-signal-persona"
-description  = "MetaSignal contract for privileged Persona engine-manager commands."
+description  = "Meta signal contract for privileged Persona engine-manager commands."
 publish      = false
 links        = "meta-signal-persona"
 build        = "build.rs"
@@ -14,21 +14,34 @@ build        = "build.rs"
 name = "meta_signal_persona"
 path = "src/lib.rs"
 
+[[test]]
+name = "canonical_examples"
+path = "tests/canonical_examples.rs"
+required-features = ["dotos-text"]
+
 [features]
 default = []
-nota-text = ["dep:nota", "signal-frame/nota-text", "signal-persona/nota-text"]
+dotos-text = ["dep:dotos", "signal-frame/dotos-text", "signal-persona/dotos-text"]
 
 [dependencies]
-nota = { git = "https://github.com/LiGoldragon/nota.git", branch = "main", optional = true }
+signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", rev = "01676293a623d97b65e320d4138c4b480c6d5dad", default-features = false }
+signal-persona = { git = "https://github.com/LiGoldragon/signal-persona.git", rev = "7d2568d420869aa0cded49c3c04cc0ac180e66a2", default-features = false }
+dotos = { package = "dotos", git = "https://github.com/LiGoldragon/dotos.git", rev = "80c7b17f7ad3cf547d2624c6a243e5de5f85c9f3", optional = true }
 rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
-signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main", default-features = false }
-signal-persona = { git = "https://github.com/LiGoldragon/signal-persona.git", branch = "main" }
+thiserror = "2"
 
 [build-dependencies]
-schema-rust = { git = "https://github.com/LiGoldragon/schema-rust.git", branch = "main" }
+core-ethos = { git = "https://github.com/LiGoldragon/core-ethos.git", rev = "427fd74a8217f557cfabdfe0ff23b784c855bf85" }
+name-table = { git = "https://github.com/LiGoldragon/name-table.git", rev = "a22f48d8040ab9235f3552ad8654ff8e27b8157d" }
+rust-logos = { git = "https://github.com/LiGoldragon/rust-logos.git", rev = "55501fddc2d7e154d71fff1659386cbbba712267" }
+schema-rust = { package = "schema-rust", git = "https://github.com/LiGoldragon/schema-rust.git", rev = "9e36587c85bd69357e9042729ba2df0052799756", default-features = false }
+sema-translator = { git = "https://github.com/LiGoldragon/sema-translator.git", rev = "6b5499c0d25c801b56582fdcd8e021c3293a6d4d", default-features = false, features = ["bootstrap"] }
+signal-persona = { git = "https://github.com/LiGoldragon/signal-persona.git", rev = "7d2568d420869aa0cded49c3c04cc0ac180e66a2", default-features = false }
+signal-sema-translator = { git = "https://github.com/LiGoldragon/signal-sema-translator.git", rev = "3a26cb43f8ce7f9fe85da64d19aa55aa662943ce" }
+structural-codec = { git = "https://github.com/LiGoldragon/structural-codec.git", rev = "879d76f91facedd6d5cbca79e282260e1beb9478" }
 
 [dev-dependencies]
-nota = { git = "https://github.com/LiGoldragon/nota.git", branch = "main" }
+dotos = { package = "dotos", git = "https://github.com/LiGoldragon/dotos.git", rev = "80c7b17f7ad3cf547d2624c6a243e5de5f85c9f3" }
 
 [lints.rust]
 unsafe_code = "forbid"
